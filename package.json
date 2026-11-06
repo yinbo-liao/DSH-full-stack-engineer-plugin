@@ -65,5 +65,13 @@
   },
   "dependencies": {
     "@deepseek-ai/schemastery": "^3.18.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yinbo-liao/DSH-full-stack-engineer-plugin.git"
+  },
+  "homepage": "https://github.com/yinbo-liao/DSH-full-stack-engineer-plugin#readme",
+  "bugs": {
+    "url": "https://github.com/yinbo-liao/DSH-full-stack-engineer-plugin/issues"
   }
 }
