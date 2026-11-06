@@ -1,0 +1,69 @@
+{
+  "name": "dsh-fullstack-engineer",
+  "version": "0.1.0",
+  "description": "Full-stack engineering playbook for DeepSeek Harness: scoped requirements, UX patterns, security, reliability, stepwise RAG with LangChain/LangGraph, and subagent harness/loop engineering.",
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE",
+    "docs"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "engines": {
+    "dsh": ">=0.2.0 <0.3.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test tests/playbook.test.mjs",
+    "test:plugin": "node --import ./tests/support/stub-register.mjs --test tests/plugin.test.mjs",
+    "test:real": "node --import ./tests/support/real-register.mjs --test --test-isolation=none tests/integration.real.test.mjs",
+    "test:stub": "node --import ./tests/support/stub-register.mjs --test tests/*.test.mjs",
+    "verify": "npm run build && npm run test:stub",
+    "test:local": "node --test --test-isolation=none tests/playbook.test.mjs && node --import ./tests/support/stub-register.mjs --test --test-isolation=none tests/plugin.test.mjs"
+  },
+  "keywords": [
+    "dsh-plugin",
+    "deepseek-harness",
+    "full-stack",
+    "ux",
+    "security",
+    "reliability",
+    "rag",
+    "langchain",
+    "langgraph",
+    "subagents"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "@deepseek-ai/cordis": ">=4.0.0 <5.0.0",
+    "@deepseek-ai/dsh-system-prompt": ">=0.2.0 <0.3.0",
+    "@deepseek-ai/dsh-tools": ">=0.2.0 <0.3.0"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "^4.0.5",
+    "@deepseek-ai/dsh-system-prompt": "^0.2.1-rc.2",
+    "@deepseek-ai/dsh-tools": "^0.2.1-rc.2",
+    "@deepseek-ai/schemastery": "^3.18.5",
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0"
+  },
+  "dependencies": {
+    "@deepseek-ai/schemastery": "^3.18.5"
+  }
+}

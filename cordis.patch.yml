@@ -1,0 +1,20 @@
+# dsh-fullstack-engineer bundle layer.
+#
+# Installing the package puts the code on disk; this layer composes it into a
+# profile. The plugin's schemastery Config validates every value at load time.
+- insert:
+    - id: fullstack-engineer
+      name: dsh-fullstack-engineer
+      config:
+        # lean | standard | regulated. Regulated adds retention, audit and
+        # approval expectations to every plan and gate.
+        rigor: standard
+        defaultStack: FastAPI + PostgreSQL + React
+        prompt: true
+        plan: true
+        uxReview: true
+        securityReview: true
+        ragBlueprint: true
+        subagentPlan: true
+        gate: true
+        maxOpenQuestions: 8
