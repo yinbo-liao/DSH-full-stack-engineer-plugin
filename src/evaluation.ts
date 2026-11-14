@@ -76,6 +76,7 @@ export interface EvaluationCheck {
 
 export interface EvaluationResult {
   goalId: string
+  verification: 'self-reported'
   decision: 'accept' | 'rework' | 'reject' | 'not_run'
   overallScore: number | null
   categories: Array<{
@@ -109,6 +110,7 @@ export interface ComparisonMetrics {
 
 export interface ComparisonResult {
   goalId: string
+  verification: 'self-reported'
   decision: 'accept' | 'rework' | 'not_run'
   acceptanceRegressions: string[]
   performanceRegressionPct: number | null
@@ -379,6 +381,7 @@ export function evaluateSubmission(goalId: string, checks: EvaluationCheck[]): E
 
   return {
     goalId,
+    verification: 'self-reported',
     decision,
     overallScore,
     categories,
@@ -462,6 +465,7 @@ export function compareCandidate(
 
   return {
     goalId,
+    verification: 'self-reported',
     decision: blockers.length > 0 ? 'rework' : missing.length > 0 ? 'not_run' : 'accept',
     acceptanceRegressions,
     performanceRegressionPct,

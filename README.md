@@ -10,7 +10,7 @@ It is a planning and review instrument. It does not generate an application for 
 |---|---|
 | `fullstack_plan` | Jobs, non-goals, acceptance criteria, UX flows/states, architecture, threat model, SLOs, delivery gates, definition of done |
 | `fullstack_goal` | GOAL-* artifact with AC IDs, evidence requirements, risks, rollback and suggested `.agent/goals/*.yaml` path |
-| `fullstack_evaluate` | Evidence-backed weighted scoring; missing checks stay `not_run`; 85/90/70 thresholds |
+| `fullstack_evaluate` | Evidence-gated weighted scoring (**records** evidence, does not verify it); missing checks stay `not_run`; 85/90/70 thresholds |
 | `fullstack_compare` | Baseline comparison: acceptance regressions, >20% p95 regression, API break, new critical/high findings |
 | `fullstack_ux_review` | Per-screen state matrix, pattern fit, accessibility, copy rules, anti-patterns |
 | `fullstack_security_review` | Design-level threat model (object authz, tenant isolation, injection, SSRF, secrets, CSRF, audit, AI boundaries), controls and tests |
@@ -71,9 +71,16 @@ This plugin itself has no network, filesystem or process access.
 
 The package declares a `dsh.bundle.patch`, so it can be installed like any DSH bundle:
 
-1. Publish/install the package (`dsh-fullstack-engineer@0.1.0`) or a Git checkout.
+1. Install the current source. The repository is **v0.2.1**; no npm release is published yet, so use Git or a local checkout:
+
+   ```bash
+   dsh plugin --profile web add git+https://github.com/yinbo-liao/DSH-full-stack-engineer-plugin.git
+   # or from a local checkout:
+   dsh plugin --profile web add file:D:/path/to/dsh-fullstack-engineer
+   ```
+
 2. Add the bundle in the Plugins page, or add the `fullstack-engineer` entry from `cordis.patch.yml` to the profile.
-3. Restart/reload the profile.
+3. Restart/reload the profile. The repository includes the built `lib/`, so the Git install needs no separate build step.
 
 For local development:
 
@@ -109,15 +116,17 @@ It asserts that the profile lists the bundle, that all nine tools and the prompt
 | `rigor` | `standard` | `lean`, `standard` or `regulated`; regulated adds approval/audit expectations |
 | `defaultStack` | `FastAPI + PostgreSQL + React` | Stack used when the brief does not choose one |
 | `prompt` | `true` | Contribute the playbook section to the system prompt |
-| `plan`, `uxReview`, `securityReview`, `ragBlueprint`, `subagentPlan`, `gate` | `true` | Register individual tools |
+| `plan`, `goal`, `evaluate`, `compare`, `uxReview`, `securityReview`, `ragBlueprint`, `subagentPlan`, `gate` | `true` | Register individual tools |
 | `maxOpenQuestions` | `8` | Cap on open questions (3–20) |
 
-## Limits
+## Caveats and limitations
 
-- Planning is deterministic and opinionated; it is not a substitute for product discovery.
-- The threat model is design-level. It names required tests; it does not claim they ran.
-- It does not deploy, migrate, call providers or write code.
-- Evidence verification is the host/CI's responsibility; the gate tells you what must exist.
+- **Evidence is not verified.** `fullstack_evaluate` checks that evidence names exist for passed checks and refuses missing evidence, but it cannot confirm that a test ran or that a record is genuine. Scores and evidence are self-reported; CI records or an independent verifier must validate them. The tool output says this explicitly.
+- **Versioning.** The repository and the installed `web` profile are **0.2.1**. There is no published npm package yet; install from Git or a local checkout. The built `lib/` is committed so Git installs do not need a build step.
+- **Opinionated by design.** The order (frame → UX → contract → threat model → evaluate → release evidence) is the value proposition. It is not a lightweight form builder. Teams can use individual tools, disable the prompt, and choose `lean` for less ceremony — but scope, object authorization and evidence remain required.
+- **No network, filesystem or process access.** The tools analyze the information the agent supplies and return structured artifacts. They cannot inspect the repo, run tests, write the goal file, call providers or deploy. Those actions belong to host tools, CI and `dsh-secure-mesh` approvals.
+- The threat model is design-level and names required tests; it does not claim they ran.
+- Planning is deterministic and is not a substitute for product discovery.
 
 ## License
 

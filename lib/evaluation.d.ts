@@ -66,6 +66,7 @@ export interface EvaluationCheck {
 }
 export interface EvaluationResult {
     goalId: string;
+    verification: 'self-reported';
     decision: 'accept' | 'rework' | 'reject' | 'not_run';
     overallScore: number | null;
     categories: Array<{
@@ -97,6 +98,7 @@ export interface ComparisonMetrics {
 }
 export interface ComparisonResult {
     goalId: string;
+    verification: 'self-reported';
     decision: 'accept' | 'rework' | 'not_run';
     acceptanceRegressions: string[];
     performanceRegressionPct: number | null;

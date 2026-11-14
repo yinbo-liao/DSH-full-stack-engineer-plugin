@@ -319,6 +319,8 @@ export function renderEvaluation(result: EvaluationResult): string {
   return [
     `# Evaluation ${result.goalId}: ${result.decision.toUpperCase()}`,
     '',
+    '**Verification boundary:** scores and evidence names are self-reported; this tool does not verify that a test ran or that a record is genuine.',
+    '',
     `**Overall:** ${result.overallScore === null ? 'not measured' : `${result.overallScore}/100`}`,
     '',
     '| Category | Weight | Score | Status | Checks |',
@@ -343,6 +345,8 @@ export function renderEvaluation(result: EvaluationResult): string {
 export function renderComparison(result: ComparisonResult): string {
   return [
     `# Baseline comparison ${result.goalId}: ${result.decision.toUpperCase()}`,
+    '',
+    '**Verification boundary:** metrics are self-reported; verify them against CI/baseline records.',
     '',
     `**Acceptance regressions:** ${result.acceptanceRegressions.length === 0 ? 'none' : result.acceptanceRegressions.join(', ')}`,
     `**p95 regression:** ${result.performanceRegressionPct === null ? 'not measured' : `${result.performanceRegressionPct}%`}`,

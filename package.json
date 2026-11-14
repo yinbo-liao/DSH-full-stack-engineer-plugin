@@ -1,6 +1,6 @@
 {
   "name": "dsh-fullstack-engineer",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Full-stack engineering playbook for DeepSeek Harness: scoped goals, UX patterns, security, reliability, stepwise RAG with LangChain/LangGraph, subagent harness/loop engineering, evidence-backed evaluation and baseline comparison.",
   "type": "module",
   "main": "lib/index.js",
