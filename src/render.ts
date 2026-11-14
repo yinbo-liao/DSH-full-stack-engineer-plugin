@@ -8,6 +8,7 @@ import type {
   SubagentPlan,
   UxReview,
 } from './playbook.js'
+import type { ComparisonResult, EvaluationResult, GoalArtifact } from './evaluation.js'
 
 function bullets(values: readonly string[]): string {
   return values.map(value => `- ${value}`).join('\n')
@@ -224,6 +225,11 @@ export function renderSubagent(plan: SubagentPlan): string {
       `- Stop: ${role.stop}`,
       '',
     ].join('\n')),
+    '## Activation matrix',
+    '| Command | Roles | Count |',
+    '|---|---|---:|',
+    ...plan.activation.map(item => `| ${item.command} | ${item.roles.join(', ')} | ${item.count} |`),
+    '',
     '## Loop',
     ...plan.loop.stages.map(stage => `- **${stage.stage}:** ${stage.action} _Exit:_ ${stage.exit}`),
     '',
@@ -233,6 +239,11 @@ export function renderSubagent(plan: SubagentPlan): string {
     '',
     '### Stop conditions',
     bullets(plan.loop.stopConditions),
+    '',
+    '### Improvement loop',
+    `Maximum ${plan.improvementLoop.maxIterations} iterations.`,
+    '',
+    bullets(plan.improvementLoop.stop),
     '',
     '## Harness requirements',
     bullets(plan.harness),
@@ -264,5 +275,86 @@ export function renderGate(decision: GateDecision): string {
     bullets(decision.nextActions),
     '',
     decision.gateG,
+  ].join('\n')
+}
+export function renderGoal(goal: GoalArtifact): string {
+  return [
+    `# ${goal.goalId}`,
+    '',
+    `**Status:** ${goal.status}`,
+    '',
+    `## Outcome\n${goal.outcome}`,
+    '',
+    '## Scope',
+    bullets(goal.scope),
+    '',
+    '## Non-goals',
+    bullets(goal.nonGoals),
+    '',
+    '## Constraints',
+    bullets(goal.constraints),
+    '',
+    '## Risks',
+    bullets(goal.risks),
+    '',
+    `**Baseline:** ${goal.baseline}`,
+    '',
+    '## Acceptance criteria',
+    '| ID | Criterion | Verification | Evidence |',
+    '|---|---|---|---|',
+    ...goal.acceptance.map(item =>
+      `| ${item.id} | ${item.criterion} | ${item.verification} | ${item.evidence.join('; ')} |`),
+    '',
+    '## Rollback',
+    bullets(goal.rollback),
+    '',
+    '## Required evidence',
+    bullets(goal.requiredEvidence),
+    '',
+    `Persist as \`${goal.suggestedPath}\` through a host write tool with approval.`,
+  ].join('\n')
+}
+
+export function renderEvaluation(result: EvaluationResult): string {
+  return [
+    `# Evaluation ${result.goalId}: ${result.decision.toUpperCase()}`,
+    '',
+    `**Overall:** ${result.overallScore === null ? 'not measured' : `${result.overallScore}/100`}`,
+    '',
+    '| Category | Weight | Score | Status | Checks |',
+    '|---|---:|---:|---|---:|',
+    ...result.categories.map(category =>
+      `| ${category.category} | ${category.weight}% | ${category.score ?? '—'} | ${category.status} | ${category.checks} |`),
+    '',
+    '## Gates',
+    ...Object.entries(result.gates).map(([gate, value]) => `- **${gate}:** ${value ? 'pass' : 'hold'}`),
+    '',
+    '## Blockers',
+    result.blockers.length === 0 ? '- None.' : bullets(result.blockers),
+    '',
+    '## Missing measurements',
+    result.missing.length === 0 ? '- None.' : bullets(result.missing),
+    '',
+    '## Required evidence',
+    bullets(result.requiredEvidence),
+  ].join('\n')
+}
+
+export function renderComparison(result: ComparisonResult): string {
+  return [
+    `# Baseline comparison ${result.goalId}: ${result.decision.toUpperCase()}`,
+    '',
+    `**Acceptance regressions:** ${result.acceptanceRegressions.length === 0 ? 'none' : result.acceptanceRegressions.join(', ')}`,
+    `**p95 regression:** ${result.performanceRegressionPct === null ? 'not measured' : `${result.performanceRegressionPct}%`}`,
+    `**API compatible:** ${result.apiCompatible === null ? 'not measured' : String(result.apiCompatible)}`,
+    `**New critical/high findings:** ${result.newCriticalFindings}/${result.newHighFindings}`,
+    '',
+    '## Blockers',
+    result.blockers.length === 0 ? '- None.' : bullets(result.blockers),
+    '',
+    '## Missing measurements',
+    result.missing.length === 0 ? '- None.' : bullets(result.missing),
+    '',
+    'A p95 regression above 20%, an API break, a new critical/high finding or an acceptance regression blocks acceptance.',
   ].join('\n')
 }

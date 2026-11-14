@@ -1,7 +1,7 @@
 /**
  * dsh-fullstack-engineer — a full-stack delivery playbook for DeepSeek Harness.
  *
- * The plugin contributes a prompt contract and six pure planning tools:
+ * The plugin contributes a prompt contract and nine pure planning tools:
  *
  * | Tool | Artifact |
  * |---|---|
@@ -10,6 +10,9 @@
  * | `fullstack_security_review` | design-level threat model and required tests |
  * | `fullstack_rag_blueprint` | stepwise LangChain/LangGraph RAG and evaluation |
  * | `fullstack_subagent_plan` | supervisor/subagent contracts, harness and loop budgets |
+ * | `fullstack_goal` | validated goal/AC/evidence artifact |
+ * | `fullstack_evaluate` | evidence-backed weighted evaluation |
+ * | `fullstack_compare` | baseline/regression comparison |
  * | `fullstack_gate` | pass/hold gate decision from named artifacts |
  *
  * Everything is deterministic and side-effect free: the tools read no files, make
@@ -27,7 +30,7 @@ export { Config };
 export type { FullstackConfig };
 export * from './playbook.js';
 export { buildPromptSection } from './prompt.js';
-export { createGateTool, createPlanTool, createRagTool, createSecurityTool, createSubagentTool, createUxTool, } from './tools.js';
+export { createCompareTool, createEvaluateTool, createGateTool, createGoalTool, createPlanTool, createRagTool, createSecurityTool, createSubagentTool, createUxTool, } from './tools.js';
 /**
  * Compose the playbook into one harness context.
  *

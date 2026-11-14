@@ -11,6 +11,9 @@ export interface FullstackConfig {
   defaultStack?: string
   prompt?: boolean
   plan?: boolean
+  goal?: boolean
+  evaluate?: boolean
+  compare?: boolean
   uxReview?: boolean
   securityReview?: boolean
   ragBlueprint?: boolean
@@ -30,6 +33,9 @@ export const Config = Schema.object({
     .description('Default stack when the brief does not choose one.'),
   prompt: Schema.boolean().default(true).description('Contribute the engineering contract to the system prompt.'),
   plan: Schema.boolean().default(true).description('Register fullstack_plan.'),
+  goal: Schema.boolean().default(true).description('Register fullstack_goal.'),
+  evaluate: Schema.boolean().default(true).description('Register fullstack_evaluate.'),
+  compare: Schema.boolean().default(true).description('Register fullstack_compare.'),
   uxReview: Schema.boolean().default(true).description('Register fullstack_ux_review.'),
   securityReview: Schema.boolean().default(true).description('Register fullstack_security_review.'),
   ragBlueprint: Schema.boolean().default(true).description('Register fullstack_rag_blueprint.'),
@@ -56,6 +62,9 @@ export function resolveConfig(config: FullstackConfig): ResolvedConfig {
     defaultStack,
     prompt: config.prompt ?? true,
     plan: config.plan ?? true,
+    goal: config.goal ?? true,
+    evaluate: config.evaluate ?? true,
+    compare: config.compare ?? true,
     uxReview: config.uxReview ?? true,
     securityReview: config.securityReview ?? true,
     ragBlueprint: config.ragBlueprint ?? true,

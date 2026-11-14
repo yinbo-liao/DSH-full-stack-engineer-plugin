@@ -6,6 +6,9 @@ export interface FullstackConfig {
     defaultStack?: string;
     prompt?: boolean;
     plan?: boolean;
+    goal?: boolean;
+    evaluate?: boolean;
+    compare?: boolean;
     uxReview?: boolean;
     securityReview?: boolean;
     ragBlueprint?: boolean;

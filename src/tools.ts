@@ -1,5 +1,5 @@
 /**
- * The six model-facing tools. They are pure planning instruments: no filesystem,
+ * The nine model-facing tools. They are pure planning instruments: no filesystem,
  * network or process access, so they are safe to expose in any profile.
  *
  * @module fullstack-engineer/tools
@@ -8,6 +8,8 @@
 import { defineTool } from '@deepseek-ai/dsh-tools'
 import type { ToolDefinition } from '@deepseek-ai/dsh-tools'
 import type { ResolvedConfig } from './config.js'
+import { buildGoal, compareCandidate, evaluateSubmission, normalizeChecks } from './evaluation.js'
+import type { ComparisonResult, EvaluationResult, GoalArtifact } from './evaluation.js'
 import {
   buildPlan,
   buildRagBlueprint,
@@ -25,7 +27,17 @@ import type {
   SubagentPlan,
   UxReview,
 } from './playbook.js'
-import { renderGate, renderPlan, renderRag, renderSecurity, renderSubagent, renderUx } from './render.js'
+import {
+  renderComparison,
+  renderEvaluation,
+  renderGate,
+  renderGoal,
+  renderPlan,
+  renderRag,
+  renderSecurity,
+  renderSubagent,
+  renderUx,
+} from './render.js'
 
 const JSON_OUTPUT = { type: 'json' as const, description: 'Structured playbook value; render as Markdown.' }
 
@@ -229,6 +241,100 @@ export function createGateTool(): ToolDefinition {
         ...(args.has_ai === undefined ? {} : { hasAi: args.has_ai }),
         ...(args.subagents === undefined ? {} : { subagents: args.subagents }),
       })
+    },
+  })
+}
+export function createGoalTool(config: ResolvedConfig): ToolDefinition {
+  return defineTool({
+    name: 'fullstack_goal',
+    description:
+      'Create a validated goal artifact with GOAL-* id, outcome, scope/non-goals, constraints, risks, rollback, '
+      + 'acceptance criteria AC-01.. and the evidence each criterion needs. The tool does not write files; persist '
+      + 'the result under .agent/goals/<id>.yaml through a host write tool with approval.',
+    parameters: {
+      outcome: { type: 'string', required: true, description: 'The measurable outcome the delivery must achieve.' },
+      id: { type: 'string', description: 'Optional goal id (letters, digits, dot, underscore, hyphen).' },
+      scope: { type: 'string', description: 'Comma/newline-separated in-scope items.' },
+      constraints: { type: 'string', description: 'Comma/newline-separated constraints.' },
+      risks: { type: 'string', description: 'Comma/newline-separated known risks.' },
+      baseline: { type: 'string', description: 'Baseline branch/tag/commit; defaults to the protected main branch.' },
+      has_ai: { type: 'boolean', description: 'Add RAG/assistant acceptance criteria.' },
+      subagents: { type: 'boolean', description: 'Add subagent contract/budget acceptance criteria.' },
+      risk: { type: 'string', enum: ['low', 'medium', 'high', 'critical'], description: 'Impact/risk classification.' },
+    },
+    output: {
+      schema: JSON_OUTPUT,
+      render: (_args, value) => text(renderGoal(value as unknown as GoalArtifact)),
+    },
+    async execute(args) {
+      return buildGoal({
+        outcome: args.outcome,
+        ...(args.id === undefined ? {} : { id: args.id }),
+        ...(args.scope === undefined ? {} : { scope: list(args.scope) }),
+        ...(args.constraints === undefined ? {} : { constraints: list(args.constraints) }),
+        ...(args.risks === undefined ? {} : { risks: list(args.risks) }),
+        ...(args.baseline === undefined ? {} : { baseline: args.baseline }),
+        ...(args.has_ai === undefined ? {} : { hasAi: args.has_ai }),
+        ...(args.subagents === undefined ? {} : { subagents: args.subagents }),
+        ...(args.risk === undefined ? {} : { risk: args.risk }),
+      }, config)
+    },
+  })
+}
+
+export function createEvaluateTool(): ToolDefinition {
+  return defineTool({
+    name: 'fullstack_evaluate',
+    description:
+      'Evaluate a goal against measured checks with evidence. Categories and weights: functional 30, regression 15, '
+      + 'security 15, performance 15, maintainability 10, architecture 10, documentation 5. Missing checks remain '
+      + 'not_run; passed checks without evidence block. Pass requires every category measured and >=70, functional and '
+      + 'security >=90, overall >=85, all checks passed and complete evidence. Scores are inputs, not proof.',
+    parameters: {
+      goal_id: { type: 'string', required: true, description: 'GOAL-* identifier.' },
+      checks: {
+        type: 'json',
+        required: true,
+        description:
+          'Array of {category, name, status: passed|failed|not_run, score?: 0..100, evidence?: string[]}. '
+          + 'Every passed check should carry evidence names/records.',
+      },
+    },
+    output: {
+      schema: JSON_OUTPUT,
+      render: (_args, value) => text(renderEvaluation(value as unknown as EvaluationResult)),
+    },
+    async execute(args) {
+      return evaluateSubmission(args.goal_id, normalizeChecks(args.checks))
+    },
+  })
+}
+
+export function createCompareTool(): ToolDefinition {
+  return defineTool({
+    name: 'fullstack_compare',
+    description:
+      'Compare candidate metrics with a baseline: acceptance regressions, p95 regression (blocks above 20%), API '
+      + 'compatibility, and new critical/high security findings. Missing measurements are not_run, not pass.',
+    parameters: {
+      goal_id: { type: 'string', required: true, description: 'GOAL-* identifier.' },
+      candidate: {
+        type: 'json',
+        required: true,
+        description: 'Object {acceptance: Record<string,boolean>, p95Ms?, apiCompatible?, criticalFindings?, highFindings?}.',
+      },
+      baseline: {
+        type: 'json',
+        required: true,
+        description: 'Same shape as candidate, measured on the protected baseline.',
+      },
+    },
+    output: {
+      schema: JSON_OUTPUT,
+      render: (_args, value) => text(renderComparison(value as unknown as ComparisonResult)),
+    },
+    async execute(args) {
+      return compareCandidate(args.goal_id, args.candidate, args.baseline)
     },
   })
 }

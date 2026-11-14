@@ -47,14 +47,23 @@ test('web profile registers the local plugin bundle', { skip: !existsSync(join(p
     profile.dsh.profile.bundles.includes('dsh-fullstack-engineer'),
     'plugin bundle is enabled in the profile',
   )
+  const local = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'))
+  const installedPath = join(profileDir, 'node_modules', 'dsh-fullstack-engineer', 'package.json')
+  if (existsSync(installedPath)) {
+    const installed = JSON.parse(readFileSync(installedPath, 'utf8'))
+    assert.equal(installed.version, local.version, 'profile installation is not stale')
+  }
 })
 
-test('real harness loads six tools and the prompt section', async () => {
+test('real harness loads nine tools and the prompt section', async () => {
   const ctx = await setup()
   try {
     const names = ctx.tools.schemas().map(schema => schema.name).sort()
     assert.deepEqual(names, [
+      'fullstack_compare',
+      'fullstack_evaluate',
       'fullstack_gate',
+      'fullstack_goal',
       'fullstack_plan',
       'fullstack_rag_blueprint',
       'fullstack_security_review',
@@ -70,7 +79,7 @@ test('real harness loads six tools and the prompt section', async () => {
   }
 })
 
-test('real tool runtime executes the plan and gate tools', async () => {
+test('real tool runtime executes plan, goal, evaluation and gate tools', async () => {
   const ctx = await setup()
   try {
     const plan = await run(ctx, 'fullstack_plan', {
@@ -96,6 +105,28 @@ test('real tool runtime executes the plan and gate tools', async () => {
       artifacts: 'brief,jobs,nonGoals,acceptance',
     })
     assert.match(textOf(passed), /PASS/)
+
+    const goal = await run(ctx, 'fullstack_goal', {
+      id: 'GOAL-INT-001',
+      outcome: 'Ship a governed assistant',
+      has_ai: true,
+    })
+    assert.match(textOf(goal), /GOAL-INT-001/)
+
+    const evaluation = await run(ctx, 'fullstack_evaluate', {
+      goal_id: 'GOAL-INT-001',
+      checks: [
+        { category: 'functional', name: 'acceptance', status: 'not_run' },
+      ],
+    })
+    assert.match(textOf(evaluation), /REWORK/)
+
+    const comparison = await run(ctx, 'fullstack_compare', {
+      goal_id: 'GOAL-INT-001',
+      candidate: { acceptance: { 'AC-01': true }, p95Ms: 90, apiCompatible: true },
+      baseline: { acceptance: { 'AC-01': true }, p95Ms: 100, apiCompatible: true },
+    })
+    assert.match(textOf(comparison), /ACCEPT/)
   } finally {
     await ctx.fiber.dispose()
   }

@@ -1,5 +1,5 @@
 /**
- * The six model-facing tools. They are pure planning instruments: no filesystem,
+ * The nine model-facing tools. They are pure planning instruments: no filesystem,
  * network or process access, so they are safe to expose in any profile.
  *
  * @module fullstack-engineer/tools
@@ -12,4 +12,7 @@ export declare function createSecurityTool(): ToolDefinition;
 export declare function createRagTool(): ToolDefinition;
 export declare function createSubagentTool(): ToolDefinition;
 export declare function createGateTool(): ToolDefinition;
+export declare function createGoalTool(config: ResolvedConfig): ToolDefinition;
+export declare function createEvaluateTool(): ToolDefinition;
+export declare function createCompareTool(): ToolDefinition;
 //# sourceMappingURL=tools.d.ts.map

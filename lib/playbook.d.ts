@@ -175,6 +175,11 @@ export interface SubagentRole {
     stop: string;
 }
 export interface SubagentPlan {
+    activation: Array<{
+        command: string;
+        roles: string[];
+        count: number;
+    }>;
     supervisor: {
         responsibility: string;
         contextBudget: string;
@@ -192,6 +197,10 @@ export interface SubagentPlan {
         maxToolCalls: number;
         stopConditions: string[];
         noProgressRule: string;
+    };
+    improvementLoop: {
+        maxIterations: number;
+        stop: string[];
     };
     harness: string[];
     gates: Array<{

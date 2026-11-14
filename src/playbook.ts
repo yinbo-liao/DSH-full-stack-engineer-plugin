@@ -168,6 +168,7 @@ export interface SubagentRole {
 }
 
 export interface SubagentPlan {
+  activation: Array<{ command: string; roles: string[]; count: number }>
   supervisor: {
     responsibility: string
     contextBudget: string
@@ -181,6 +182,10 @@ export interface SubagentPlan {
     maxToolCalls: number
     stopConditions: string[]
     noProgressRule: string
+  }
+  improvementLoop: {
+    maxIterations: number
+    stop: string[]
   }
   harness: string[]
   gates: Array<{ gate: string; requirement: string }>
@@ -860,7 +865,7 @@ const DEFAULT_ROLES: Array<Omit<SubagentRole, 'stop'>> = [
 export function buildSubagentPlan(input: SubagentInput): SubagentPlan {
   if (input.objective.trim() === '') throw new Error('fullstack: objective is required')
   const names = input.roles !== undefined && input.roles.length > 0 ? input.roles : DEFAULT_ROLES.map(role => role.role)
-  const maxIterations = Math.max(2, Math.min(20, input.maxIterations ?? 8))
+  const maxIterations = Math.max(2, Math.min(10, input.maxIterations ?? 5))
   const tools = input.tools ?? ['read_*', 'write_*', 'test_*', 'search_*']
   const roles: SubagentRole[] = names.map((name, index) => {
     const base = DEFAULT_ROLES.find(role => role.role.toLowerCase() === name.toLowerCase())
@@ -875,6 +880,14 @@ export function buildSubagentPlan(input: SubagentInput): SubagentPlan {
   })
 
   return {
+    activation: [
+      { command: 'frame', roles: ['product'], count: 1 },
+      { command: 'design', roles: ['ux', 'backend', 'security'], count: 3 },
+      { command: 'build', roles: ['backend', 'frontend'], count: 2 },
+      { command: 'verify', roles: ['security', 'verifier'], count: 2 },
+      { command: 'improve', roles: ['backend', 'frontend', 'verifier'], count: 3 },
+      { command: 'release', roles: ['verifier'], count: 1 },
+    ],
     supervisor: {
       responsibility: `Deliver: ${input.objective.trim()} (risk: ${input.risk ?? 'medium'}). Route one subagent at a time; never let a worker grade its own work.`,
       contextBudget: 'Keep supervisor context to summaries (<= 500 tokens each), evidence ids and open blockers; never paste full transcripts.',
@@ -908,6 +921,16 @@ export function buildSubagentPlan(input: SubagentInput): SubagentPlan {
         'Iteration, tool-call, token or wall-clock budget is exhausted.',
       ],
       noProgressRule: 'If two iterations produce the same evidence hash and no decision changes, stop and escalate rather than rephrase the same attempt.',
+    },
+    improvementLoop: {
+      maxIterations: 5,
+      stop: [
+        'all mandatory gates pass and the weighted score is at least 85',
+        'two consecutive iterations improve the score by less than one point',
+        'tests or evidence are unreliable or unreproducible',
+        'a human approval decision is required or rejected',
+        'the five-iteration improvement cap is reached',
+      ],
     },
     harness: [
       'Typed tool registry with contract hashes; a contract change invalidates dependent prompts and evals.',

@@ -9,6 +9,9 @@ It is a planning and review instrument. It does not generate an application for 
 | Tool | Output |
 |---|---|
 | `fullstack_plan` | Jobs, non-goals, acceptance criteria, UX flows/states, architecture, threat model, SLOs, delivery gates, definition of done |
+| `fullstack_goal` | GOAL-* artifact with AC IDs, evidence requirements, risks, rollback and suggested `.agent/goals/*.yaml` path |
+| `fullstack_evaluate` | Evidence-backed weighted scoring; missing checks stay `not_run`; 85/90/70 thresholds |
+| `fullstack_compare` | Baseline comparison: acceptance regressions, >20% p95 regression, API break, new critical/high findings |
 | `fullstack_ux_review` | Per-screen state matrix, pattern fit, accessibility, copy rules, anti-patterns |
 | `fullstack_security_review` | Design-level threat model (object authz, tenant isolation, injection, SSRF, secrets, CSRF, audit, AI boundaries), controls and tests |
 | `fullstack_rag_blueprint` | Ten-step RAG: source/ACL inventory → ingestion → parse → chunk → embed/index → hybrid retrieve/rerank → grounded generation → eval → observe → operate |
@@ -25,6 +28,16 @@ Plus a system-prompt section (`fullstack-engineer:playbook`) stating the non-neg
 4. **Threat model** — object authz, tenancy, injection, SSRF, secrets, CSRF/session, audit; for AI: prompt injection, RAG ACL leakage, tool abuse.
 5. **Evaluate** — corpus owners/ACLs, golden set, thresholds, rollback before RAG or subagents.
 6. **Release evidence** — records with producer, commit, scope and freshness; never a URI alone.
+
+## Goal, evaluation and comparison (v0.2)
+
+The v0.2 tools close the loop between a plan and an acceptance decision:
+
+- `fullstack_goal` emits a validated goal document with `GOAL-*`, `AC-01..`, verification method, required evidence, risks, rollback and the exact path to persist it. It does not write the file; use a host write tool with approval.
+- `fullstack_evaluate` takes measured checks (`category`, `name`, `status`, `score`, `evidence`) and applies the five-subagent weights: functional 30, regression 15, security 15, performance 15, maintainability 10, architecture 10, documentation 5. Missing checks are `not_run`; a passed check without evidence blocks; pass requires every category measured and ≥70, functional and security ≥90, overall ≥85, all checks passed and complete evidence.
+- `fullstack_compare` blocks acceptance on an acceptance regression, a p95 regression above 20%, an API compatibility break, or a new critical/high security finding. Missing measurements are `not_run`.
+
+Scores are self-reported inputs. The tool records evidence names and refuses missing evidence, but **it does not verify the evidence** — use the CI evidence gate / an independent verifier for that. See `docs/EVALUATION.md`.
 
 ## RAG with LangChain/LangGraph
 
@@ -87,7 +100,7 @@ node --import ./tests/support/real-register.mjs \
   --test --test-isolation=none tests/integration.real.test.mjs
 ```
 
-It asserts that the profile lists the bundle, that all six tools and the prompt section register, and that `fullstack_plan` / `fullstack_gate` execute through the real tool runtime. `DSH_HARNESS` defaults to `Y:/DSH/deepseek-harness` when resolving the real packages.
+It asserts that the profile lists the bundle, that all nine tools and the prompt section register, and that the plan, goal, evaluation, comparison and gate tools execute through the real tool runtime. `DSH_HARNESS` defaults to `Y:/DSH/deepseek-harness` when resolving the real packages.
 
 ## Configuration
 

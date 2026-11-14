@@ -81,10 +81,13 @@ test('RAG blueprint is stepwise with evaluation thresholds', () => {
 test('subagent plan has typed roles, budgets and stop rules', () => {
   const plan = buildSubagentPlan({ objective: 'Ship a governed billing workflow', maxIterations: 30 })
   assert.ok(plan.roles.length >= 7)
-  assert.equal(plan.loop.maxIterations, 20)
+  assert.equal(plan.loop.maxIterations, 10)
   assert.ok(plan.loop.maxToolCalls >= 12)
   assert.ok(plan.loop.stopConditions.some(item => item.includes('No-progress') || item.includes('no new evidence')))
   assert.ok(plan.harness.some(item => item.includes('Approval')))
+  assert.ok(plan.activation.some(item => item.command === 'verify'))
+  assert.equal(plan.improvementLoop.maxIterations, 5)
+  assert.ok(plan.improvementLoop.stop.some(item => item.includes('five-iteration')))
   assert.ok(plan.redTeam.some(item => /own evidence|verifier/i.test(item)))
 })
 

@@ -12,6 +12,9 @@
         defaultStack: FastAPI + PostgreSQL + React
         prompt: true
         plan: true
+        goal: true
+        evaluate: true
+        compare: true
         uxReview: true
         securityReview: true
         ragBlueprint: true
