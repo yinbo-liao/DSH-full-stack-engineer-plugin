@@ -11,7 +11,7 @@
  * | `fullstack_rag_blueprint` | stepwise LangChain/LangGraph RAG and evaluation |
  * | `fullstack_subagent_plan` | supervisor/subagent contracts, harness and loop budgets |
  * | `fullstack_goal` | validated goal/AC/evidence artifact |
- * | `fullstack_evaluate` | evidence-backed weighted evaluation |
+ * | `fullstack_evaluate` | evidence-gated weighted evaluation (does not verify evidence) |
  * | `fullstack_compare` | baseline/regression comparison |
  * | `fullstack_gate` | pass/hold gate decision from named artifacts |
  *

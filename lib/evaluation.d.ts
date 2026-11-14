@@ -1,5 +1,5 @@
 /**
- * v0.2 delivery controls: goal artifact, evidence-backed evaluation and
+ * v0.2 delivery controls: goal artifact, evidence-gated evaluation and
  * baseline comparison.
  *
  * The point of this module is to make "done" falsifiable. A goal names its
